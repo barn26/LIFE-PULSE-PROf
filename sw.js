@@ -2,7 +2,7 @@
    Кеш має власний префікс "lifepulse-", щоб не зачіпати кеші інших програм
    на тому самому домені (наприклад, фінансової програми на github.io). */
 const PREFIX = "lifepulse-";
-const CACHE_NAME = PREFIX + "v1.1.0";
+const CACHE_NAME = PREFIX + "v1.2.0";
 const APP_SHELL = [
   "./",
   "./index.html",
