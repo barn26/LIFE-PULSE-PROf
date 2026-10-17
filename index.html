@@ -31,6 +31,7 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 .lockcard .bio{width:100%;margin-bottom:12px;padding:13px}
 header{padding-top:max(12px,env(safe-area-inset-top))}
 .toast{bottom:calc(20px + env(safe-area-inset-bottom))}
+#screen-position .grid{grid-template-columns:minmax(0,1fr)}
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 </style>
 </head>
@@ -38,13 +39,14 @@ header{padding-top:max(12px,env(safe-area-inset-top))}
 <header>
   <div class="headrow">
     <div class="brand"><div class="logo">✚</div><div><h1>LIFE PULSE PRO</h1><small>ОФЛАЙН-ПОМІЧНИК • ОСОБИСТИЙ КОНТРОЛЬ</small></div></div>
-    <button class="version" id="versionBtn" aria-label="Історія версій">v1.2.0 ⌄</button>
+    <button class="version" id="versionBtn" aria-label="Історія версій">v1.3.0 ⌄</button>
   </div>
   <nav id="nav">
     <button class="active" data-screen="home">⌂ Головна</button>
     <button data-screen="pulse">♥ Пульс-скан</button>
     <button data-screen="schedule">◷ Графік</button>
     <button data-screen="flight">✈ Облік часу</button>
+    <button data-screen="position">⛺ Позиція</button>
     <button data-screen="finance">₴ Фінанси</button>
     <button data-screen="settings">⚙ Налаштування</button>
   </nav>
@@ -62,6 +64,7 @@ header{padding-top:max(12px,env(safe-area-inset-top))}
     <div class="card"><h3>Швидкі дії</h3><div class="stack"><button class="primary" data-go="pulse">♥ Пройти ПУЛЬС-СКАН</button><button data-go="schedule">◷ Додати графік / таймер</button><button data-go="flight">✈ Записати час</button></div></div>
     <div class="card"><h3>Відновлення сьогодні</h3><p class="muted" style="font-size:13px;margin-top:0">Невеликі дії, які можуть допомогти підтримати працездатність.</p><div id="homeTips"><div class="recommendation">Почни з короткої оцінки сну, енергії та напруження.</div><div class="recommendation">За можливості зроби паузу, випий води та перевір, чи є час на відпочинок.</div></div></div>
   </div>
+  <div class="card hidden" id="homePosCard" style="margin-top:12px"><div class="between"><div><h3 style="margin:0 0 4px" id="homePosTitle">На позиції</h3><p class="tiny" style="margin:0" id="homePosText"></p></div><button data-go="position">Відкрити</button></div></div>
   <div class="card hidden" id="installCard" style="margin-top:12px"><div class="between"><div><h3 style="margin:0 0 4px">Встановити на телефон</h3><p class="tiny" style="margin:0">Іконка на головному екрані, працює й без мережі.</p></div><button class="primary" id="installBtn2">Встановити</button></div></div>
   <p class="tiny" style="margin:12px 3px">Це інструмент самоспостереження, а не медичний висновок. Не вводь секретні службові, тактичні або чужі персональні дані.</p>
 </section>
@@ -100,6 +103,48 @@ header{padding-top:max(12px,env(safe-area-inset-top))}
       <button class="primary" type="submit" style="width:100%">Зберегти запис</button>
     </form></div>
     <div class="card"><h3>Історія записів</h3><div id="flightList" class="list"><div class="empty">Записів поки немає.</div></div></div>
+  </div>
+</section>
+<section class="screen" id="screen-position">
+  <div class="hero"><div class="eyebrow">POSITION LOG</div><h2>Виїзд на позицію</h2><p>Записуй лише час: виїзд, приїзд, повернення. Без назв місць, маршрутів і координат.</p></div>
+  <div class="stats" style="margin-bottom:12px">
+    <div class="statbox"><div class="label">СТАТУС</div><div class="stat cyan" id="posStatus" style="font-size:19px">—</div><div class="tiny" id="posStatusDetail">Виїздів поки немає</div></div>
+    <div class="statbox"><div class="label">ВСЬОГО НА ПОЗИЦІЯХ</div><div class="stat green" id="posTotal" style="font-size:19px">0 хв</div><div class="tiny" id="posCount">Виїздів: 0</div></div>
+  </div>
+  <div class="grid">
+    <div class="card" id="posNewCard"><h3>Новий виїзд</h3><form id="posNewForm">
+      <div class="field"><label for="posDepart">Виїзд на позицію (дата й час)</label><input id="posDepart" type="datetime-local" required></div>
+      <div class="field"><label for="posArrive">Приїзд на позицію (дата й час)</label><input id="posArrive" type="datetime-local" required></div>
+      <div class="field"><label for="posPlan">Планове повернення з позиції (необов'язково)</label><input id="posPlan" type="datetime-local"></div>
+      <button class="primary" type="submit" style="width:100%">Зберегти виїзд</button>
+    </form></div>
+    <div class="card hidden" id="posOpenCard"><h3>Поточний виїзд</h3><div id="posActive"></div>
+      <div class="divider"></div><h4>Завершення виїзду</h4>
+      <form id="posCloseForm">
+        <div class="field"><label for="posLeave">Виїзд з позиції (дата й час)</label><input id="posLeave" type="datetime-local" required></div>
+        <div class="field"><label for="posBack">Приїзд на відпочинок (дата й час)</label><input id="posBack" type="datetime-local" required></div>
+        <button class="primary" type="submit" style="width:100%">Завершити й підрахувати</button>
+      </form>
+      <div class="divider"></div>
+      <div class="field"><label for="posPlanEdit">Змінити планове повернення з позиції</label><input id="posPlanEdit" type="datetime-local"></div>
+      <div class="row"><button id="posPlanSave">Оновити план</button><button id="posCancel" class="danger">Видалити виїзд</button></div>
+    </div>
+    <div class="card" id="tariffCard"><div class="between"><h3 style="margin:0">Тарифікація</h3><span class="pill" id="tariffPill">приховано</span></div>
+      <div id="tariffMasked" style="margin-top:12px"><div class="stat" style="letter-spacing:5px">••••••</div><p class="tiny">Суми приховані. Щоб побачити їх, підтверди відбитком пальця.</p><button class="primary bio" id="tariffReveal" style="width:100%"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M12 3a8 8 0 0 0-8 8v1"/><path d="M12 6.5a4.5 4.5 0 0 0-4.5 4.5v3a8 8 0 0 0 1.5 4.7"/><path d="M12 10a1 1 0 0 0-1 1v3.5c0 2 .6 3.8 1.7 5.3"/><path d="M16.5 11a4.5 4.5 0 0 0-2-3.7"/><path d="M16.5 14.5c0 2.4-.6 4.4-1.7 6"/><path d="M20 12v1.5c0 2-.4 3.8-1.2 5.3"/></svg>Показати суми</button></div>
+      <div id="tariffOpen" class="hidden" style="margin-top:12px">
+        <div class="stats">
+          <div class="statbox"><div class="label">ЦЬОГО МІСЯЦЯ</div><div class="stat amber" id="tariffMonth" style="font-size:19px">—</div></div>
+          <div class="statbox"><div class="label">ВСЬОГО</div><div class="stat green" id="tariffAll" style="font-size:19px">—</div></div>
+          <div class="statbox"><div class="label">ДІБ НА ПОЗИЦІЯХ</div><div class="stat" id="tariffDays" style="font-size:19px">—</div></div>
+        </div>
+        <div class="recommendation" id="tariffLive" style="margin-top:10px"></div>
+        <div class="field" style="margin-top:12px"><label for="tariffRate">Ставка за добу на позиції (₴)</label><input id="tariffRate" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0.00"></div>
+        <div class="field"><label for="tariffMethod">Як рахувати дні</label><select id="tariffMethod"><option value="calendar">Календарні дні (кожна дата на позиції)</option><option value="full">Повні доби (24 години)</option></select></div>
+        <div class="row"><button class="primary" id="tariffSave">Зберегти ставку</button><button id="tariffHide">Сховати</button></div>
+        <p class="tiny" id="tariffHint"></p>
+      </div>
+    </div>
+    <div class="card"><h3>Історія виїздів</h3><div id="posList" class="list"><div class="empty">Завершених виїздів поки немає.</div></div></div>
   </div>
 </section>
 <section class="screen" id="screen-finance">
@@ -141,15 +186,15 @@ const money=(n,c)=>Number(n).toLocaleString('uk-UA',{minimumFractionDigits:2,max
 const duration=n=>{n=Math.max(0,Math.floor(n));const d=Math.floor(n/1440),h=Math.floor((n%1440)/60),m=n%60;return [d?d+' д':'',h?h+' год':'',m+' хв'].filter(Boolean).join(' ')};
 const dateFmt=s=>new Date(s).toLocaleString('uk-UA',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const defaults={pulses:[],shifts:[],flights:[],finance:null,security:{pin:null,autoLock:0,bio:null}};
+const defaults={pulses:[],shifts:[],flights:[],finance:null,security:{pin:null,autoLock:0,bio:null},deployments:[],tariff:{rate:0,method:'calendar'}};
 const clone=o=>JSON.parse(JSON.stringify(o));
 const b64u={enc(buf){const u=new Uint8Array(buf);let s='';for(let i=0;i<u.length;i++)s+=String.fromCharCode(u[i]);return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')},dec(str){let s=String(str).replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';const r=atob(s),u=new Uint8Array(r.length);for(let i=0;i<r.length;i++)u[i]=r.charCodeAt(i);return u}};
 let data=load(), quizAnswers=[null,null,null,null,null], toastTimer, lastActivity=Date.now(), locked=false, failCount=0, blockedUntil=0, bioBusy=false, hiddenAt=0, deferredPrompt=null, bioState={ok:false,msg:'Перевіряємо підтримку на цьому пристрої…'};
-function sanitize(j){j=j||{};const num=v=>typeof v==='number'&&Number.isFinite(v),dt=v=>v!==undefined&&v!==null&&Number.isFinite(+new Date(v)),ids=a=>a.map((x,i)=>x.id!==undefined?x:{...x,id:Date.now()+i}),arr=(a,ok)=>ids((Array.isArray(a)?a:[]).filter(x=>x&&typeof x==='object'&&ok(x)));const f=j.finance,b=f&&Number(f.balance),d=f&&Number(f.daily);return {pulses:arr(j.pulses,p=>num(p.score)&&dt(p.date)&&Array.isArray(p.advice)&&typeof p.level==='string'),shifts:arr(j.shifts,x=>typeof x.name==='string'&&dt(x.start)&&dt(x.end)),flights:arr(j.flights,x=>dt(x.date)&&Number(x.minutes)>0),finance:f&&typeof f==='object'&&f.balance!==null&&f.daily!==null&&Number.isFinite(b)&&Number.isFinite(d)?{balance:b,daily:d,updated:dt(f.updated)?f.updated:new Date().toISOString(),auto:!!f.auto,cur:typeof f.cur==='string'&&f.cur?f.cur.slice(0,4):'₴'}:null}}
+function sanitize(j){j=j||{};const num=v=>typeof v==='number'&&Number.isFinite(v),dt=v=>v!==undefined&&v!==null&&Number.isFinite(+new Date(v)),ids=a=>a.map((x,i)=>x.id!==undefined?x:{...x,id:Date.now()+i}),arr=(a,ok)=>ids((Array.isArray(a)?a:[]).filter(x=>x&&typeof x==='object'&&ok(x)));const f=j.finance,b=f&&Number(f.balance),d=f&&Number(f.daily);return {deployments:arr(j.deployments,x=>dt(x.depart)&&dt(x.arrive)).map(x=>{const both=dt(x.leave)&&dt(x.back);return {id:x.id,depart:x.depart,arrive:x.arrive,plan:dt(x.plan)?x.plan:null,leave:both?x.leave:null,back:both?x.back:null}}),tariff:(t=>({rate:Number.isFinite(Number(t.rate))&&Number(t.rate)>=0?Math.round(Number(t.rate)*100)/100:0,method:t.method==='full'?'full':'calendar'}))(j.tariff||{}),pulses:arr(j.pulses,p=>num(p.score)&&dt(p.date)&&Array.isArray(p.advice)&&typeof p.level==='string'),shifts:arr(j.shifts,x=>typeof x.name==='string'&&dt(x.start)&&dt(x.end)),flights:arr(j.flights,x=>dt(x.date)&&Number(x.minutes)>0),finance:f&&typeof f==='object'&&f.balance!==null&&f.daily!==null&&Number.isFinite(b)&&Number.isFinite(d)?{balance:b,daily:d,updated:dt(f.updated)?f.updated:new Date().toISOString(),auto:!!f.auto,cur:typeof f.cur==='string'&&f.cur?f.cur.slice(0,4):'₴'}:null}}
 function load(){try{const raw=JSON.parse(localStorage.getItem(KEY)||'{}')||{},s=raw.security||{};return {...sanitize(raw),security:{pin:s.pin||null,autoLock:[-1,0,1,5,15].includes(Number(s.autoLock))?Number(s.autoLock):0,bio:(s.bio&&s.bio.id)?s.bio:null}}}catch(e){return clone(defaults)}}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(data))}catch(e){toast('Не вдалося зберегти дані: сховище браузера недоступне або переповнене.')}renderAll()}
 function toast(s){$('toast').textContent=s;$('toast').classList.remove('hidden');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').classList.add('hidden'),2600)}
-function showScreen(name){if(name==='settings')checkBio();document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('active',s.id==='screen-'+name));document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('active',b.dataset.screen===name));window.scrollTo({top:0,behavior:'smooth'})}
+function showScreen(name){if(name==='settings')checkBio();if(name!=='position'&&tariffShown)hideTariff();document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('active',s.id==='screen-'+name));document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('active',b.dataset.screen===name));window.scrollTo({top:0,behavior:'smooth'})}
 $('nav').addEventListener('click',e=>{const b=e.target.closest('[data-screen]');if(b)showScreen(b.dataset.screen)});
 document.addEventListener('click',e=>{const b=e.target.closest('[data-go]');if(b)showScreen(b.dataset.go)});
 function renderQuiz(){const qs=[['Як оцінюєш свій настрій?',['Дуже важко','Важко','Посередньо','Добре','Дуже добре']],['Скільки в тебе зараз енергії?',['Майже немає','Мало','Середньо','Достатньо','Багато']],['Як пройшов сон / відпочинок?',['Дуже погано','Погано','Посередньо','Добре','Дуже добре']],['Наскільки сильне напруження?',['Дуже сильне','Сильне','Помірне','Невелике','Майже немає']],['Як із концентрацією та відновленням?',['Дуже складно','Складно','Посередньо','Добре','Дуже добре']]];
@@ -188,7 +233,54 @@ $('syncFinance').addEventListener('click',()=>syncFinance(true));
 window.addEventListener('storage',e=>{if(e.key===FIN_SNAP_KEY)syncFinance(false)});
 function renderHome(){const p=data.pulses[0];$('homePulse').textContent=p?p.score+'/100':'—';$('homePulseDate').textContent=p?new Date(p.date).toLocaleDateString('uk-UA'):'Пройди короткий тест';$('homeTips').innerHTML=p?p.advice.slice(0,2).map(t=>`<div class="recommendation">${esc(t)}</div>`).join(''):'<div class="recommendation">Почни з короткої оцінки сну, енергії та напруження.</div><div class="recommendation">За можливості зроби паузу, випий води та перевір, чи є час на відпочинок.</div>'}
 function renderSecurity(){const s=data.security;$('pinStatus').textContent=s.pin?'PIN увімкнено. Програма блокується при кожному запуску.':'PIN не налаштовано.';$('autoLock').value=String(s.autoLock||0);$('removePin').disabled=!s.pin;$('bioEnable').classList.toggle('hidden',!!s.bio);$('bioDisable').classList.toggle('hidden',!s.bio);$('bioTest').classList.toggle('hidden',!s.bio);$('bioEnable').disabled=!s.pin||!bioState.ok;$('bioStatus').textContent=s.bio?'Вхід за відбитком увімкнено на цьому пристрої. PIN залишається запасним способом.':!bioState.ok?bioState.msg:!s.pin?'Спершу встанови PIN — він буде запасним способом входу.':'Можна ввімкнути вхід за відбитком пальця.'}
-function renderAll(){renderHome();renderPulse();renderShifts();renderFlights();renderFinance();renderSecurity()}
+/* ===== ПОЗИЦІЯ ===== */
+const MS_D=86400000;
+const dayWord=n=>{const a=n%10,b=n%100;return a===1&&b!==11?'доба':(a>=2&&a<=4&&!(b>=12&&b<=14))?'доби':'діб'};
+let tariffShown=false,tariffTimer=null;
+const tm=v=>+new Date(v);
+const dtLocal=v=>{if(!v)return null;const d=new Date(v);return Number.isFinite(+d)?d:null};
+const minsBetween=(a,b)=>Math.max(0,Math.round((tm(b)-tm(a))/60000));
+const isOpenDep=d=>!(d.leave&&d.back);
+const openDep=()=>data.deployments.find(isOpenDep)||null;
+const stageInfo={planned:{label:'Виїзд заплановано',cls:'warn'},enroute:{label:'У дорозі на позицію',cls:'warn'},onpos:{label:'На позиції',cls:'ok'},done:{label:'Завершено',cls:''}};
+function depStage(d,now=Date.now()){if(!isOpenDep(d))return 'done';if(now<tm(d.depart))return 'planned';if(now<tm(d.arrive))return 'enroute';return 'onpos'}
+const posMs=(d,now=Date.now())=>Math.max(0,(d.leave?tm(d.leave):now)-tm(d.arrive));
+function planDiffText(d,now=Date.now()){if(!d.plan)return '';if(d.leave){const diff=Math.round((tm(d.leave)-tm(d.plan))/60000);if(diff===0)return 'Точно за планом.';return diff>0?'На позиції на '+duration(diff)+' довше, ніж планувалося.':'На позиції на '+duration(-diff)+' менше, ніж планувалося.'}const rem=Math.round((tm(d.plan)-now)/60000);return rem>=0?'До планового повернення: '+duration(rem)+'.':'Планове повернення перевищено на '+duration(-rem)+'.'}
+function payDays(d,method,endMs){const a=new Date(d.arrive),e=new Date(endMs);if(+e<+a)return {days:0,byMonth:{}};if(method==='full'){const days=Math.floor((+e-+a)/MS_D);return {days,byMonth:days?{[isoDay(e).slice(0,7)]:days}:{}}}const by={};let days=0;const c=new Date(a.getFullYear(),a.getMonth(),a.getDate()),last=new Date(e.getFullYear(),e.getMonth(),e.getDate());while(c<=last&&days<3700){const k=isoDay(c).slice(0,7);by[k]=(by[k]||0)+1;days++;c.setDate(c.getDate()+1)}return {days,byMonth:by}}
+const depEnd=(d,now=Date.now())=>d.leave?tm(d.leave):now;
+function tariffTotals(now=Date.now()){const {rate,method}=data.tariff,mk=isoDay(now).slice(0,7);let all=0,month=0,days=0;data.deployments.forEach(d=>{const p=payDays(d,method,depEnd(d,now));days+=p.days;all+=p.days*rate;month+=(p.byMonth[mk]||0)*rate});return {all,month,days}}
+function renderDeployments(){const now=Date.now(),o=openDep(),done=data.deployments.filter(d=>!isOpenDep(d)),m=data.tariff.method,r=data.tariff.rate;
+$('posNewCard').classList.toggle('hidden',!!o);$('posOpenCard').classList.toggle('hidden',!o);$('homePosCard').classList.toggle('hidden',!o);
+const totalMs=data.deployments.reduce((s,d)=>{const st=depStage(d,now);return s+(st==='planned'||st==='enroute'?0:posMs(d,now))},0);
+$('posTotal').textContent=duration(totalMs/60000);$('posCount').textContent='Виїздів: '+data.deployments.length;
+if(o){const st=depStage(o,now),si=stageInfo[st],onpos=st==='onpos';
+$('posStatus').textContent=si.label;$('posStatusDetail').textContent=onpos?'Вже на позиції: '+duration(posMs(o,now)/60000):st==='enroute'?'Приїзд: '+dateFmt(o.arrive):'Виїзд: '+dateFmt(o.depart);
+$('posActive').innerHTML=`<span class="pill ${si.cls}">${si.label}</span>`+(onpos?`<h2 style="font-size:22px;margin:10px 0 2px">${duration(posMs(o,now)/60000)}</h2><p class="tiny" style="margin:0 0 6px">на позиції</p>`:'')+`<p class="tiny" style="margin:8px 0">Виїзд: ${dateFmt(o.depart)}<br>Приїзд на позицію: ${dateFmt(o.arrive)}${o.plan?`<br>План повернення: ${dateFmt(o.plan)}`:''}</p>`+(o.plan?`<div class="recommendation">${esc(planDiffText(o,now))}</div>`:'');
+$('homePosTitle').textContent=si.label;$('homePosText').textContent=onpos?'Вже '+duration(posMs(o,now)/60000)+(o.plan?' • '+planDiffText(o,now):''):(st==='enroute'?'Приїзд: ':'Виїзд: ')+dateFmt(st==='enroute'?o.arrive:o.depart)}
+else{$('posStatus').textContent='Немає активного';const last=[...done].sort((a,b)=>tm(b.depart)-tm(a.depart))[0];$('posStatusDetail').textContent=last?'Останній: на позиції '+duration(posMs(last)/60000):'Виїздів поки немає';$('posActive').innerHTML=''}
+$('posList').innerHTML=done.length?[...done].sort((a,b)=>tm(b.depart)-tm(a.depart)).slice(0,30).map(d=>{const p=payDays(d,m,tm(d.leave)),cmp=planDiffText(d);return `<div class="item"><div class="itemhead"><div><strong>На позиції: ${duration(posMs(d)/60000)}</strong><p>${dateFmt(d.arrive)} → ${dateFmt(d.leave)}</p><p>Дорога туди: ${duration(minsBetween(d.depart,d.arrive))} • назад: ${duration(minsBetween(d.leave,d.back))} • усього у виїзді: ${duration(minsBetween(d.depart,d.back))}</p>${d.plan?`<p>Планувалося: ${duration(minsBetween(d.arrive,d.plan))}. ${esc(cmp)}</p>`:''}<p>Нараховано: ${tariffShown?money(p.days*r):'••••••'} (${p.days} ${dayWord(p.days)})</p></div><button class="small danger" data-delete-dep="${d.id}">Видалити</button></div></div>`}).join(''):'<div class="empty">Завершених виїздів поки немає.</div>';
+$('tariffMasked').classList.toggle('hidden',tariffShown);$('tariffOpen').classList.toggle('hidden',!tariffShown);$('tariffPill').textContent=tariffShown?'показано':'приховано';
+if(tariffShown){const t=tariffTotals(now);$('tariffMonth').textContent=money(t.month);$('tariffAll').textContent=money(t.all);$('tariffDays').textContent=t.days+' '+dayWord(t.days);
+let h='';if(o){const c=payDays(o,m,now);h='Поточний виїзд: '+c.days+' '+dayWord(c.days)+' • '+money(c.days*r);if(o.plan){const pl=payDays(o,m,tm(o.plan));h+='<br>За планом: '+pl.days+' '+dayWord(pl.days)+' • '+money(pl.days*r)}}
+$('tariffLive').innerHTML=h;$('tariffLive').classList.toggle('hidden',!h);
+$('tariffHint').textContent=m==='full'?'Рахуються повні доби по 24 години від приїзду на позицію.':'Рахується кожна календарна дата, в яку ти був на позиції, включно з днем приїзду та днем виїзду.'}}
+function resetTariffTimer(){clearTimeout(tariffTimer);if(tariffShown)tariffTimer=setTimeout(()=>hideTariff(),60000)}
+function showTariff(){tariffShown=true;$('tariffRate').value=data.tariff.rate||'';$('tariffMethod').value=data.tariff.method;resetTariffTimer();renderDeployments();if(!data.security.pin&&!data.security.bio)toast('Порада: увімкни PIN і відбиток у Налаштуваннях, щоб захистити суми.')}
+function hideTariff(){tariffShown=false;clearTimeout(tariffTimer);$('tariffRate').value='';renderDeployments()}
+function askPin(){return new Promise(res=>{openModal('Підтверди PIN','<div class="field"><input id="revealPin" type="password" inputmode="numeric" maxlength="8" placeholder="PIN-код" autocomplete="current-password"></div><p class="tiny dangertext" id="revealErr"></p>',[{label:'Скасувати',action:()=>{closeModal();res(false)}},{label:'Показати',primary:true,action:async()=>{let ok=false;try{ok=await verifyPin($('revealPin').value)}catch(e){}if(ok){closeModal();res(true)}else{$('revealErr').textContent='PIN неправильний.';$('revealPin').value=''}}}]);setTimeout(()=>{const x=$('revealPin');if(x)x.focus()},50)})}
+async function confirmIdentity(){const s=data.security;if(s.bio){try{return await bioAuth()}catch(e){toast(e&&e.name==='NotAllowedError'?'Скасовано або відбиток не підтверджено.':'Підтвердження відбитком недоступне.');return false}}if(s.pin)return await askPin();return true}
+async function revealTariff(){const b=$('tariffReveal');b.disabled=true;try{if(await confirmIdentity())showTariff();else if(data.security.bio)toast('Не підтверджено. Суми лишаються прихованими.')}finally{b.disabled=false}}
+$('tariffReveal').addEventListener('click',revealTariff);
+$('tariffHide').addEventListener('click',()=>hideTariff());
+$('tariffOpen').addEventListener('input',resetTariffTimer);
+$('tariffSave').addEventListener('click',()=>{const raw=$('tariffRate').value,r=Number(raw);if(raw===''||!Number.isFinite(r)||r<0){toast('Вкажи ставку за добу (число від 0).');return}data.tariff={rate:Math.round(r*100)/100,method:$('tariffMethod').value==='full'?'full':'calendar'};save();resetTariffTimer();toast('Ставку збережено')});
+$('posNewForm').addEventListener('submit',e=>{e.preventDefault();if(openDep()){toast('Спершу заверши поточний виїзд.');return}const dep=dtLocal($('posDepart').value),arr=dtLocal($('posArrive').value),pv=$('posPlan').value,plan=dtLocal(pv);if(!dep||!arr){toast('Вкажи час виїзду та приїзду на позицію.');return}if(+arr<+dep){toast('Приїзд на позицію не може бути раніше виїзду.');return}if(pv&&(!plan||+plan<=+arr)){toast('Планове повернення має бути після приїзду на позицію.');return}data.deployments.push({id:Date.now(),depart:dep.toISOString(),arrive:arr.toISOString(),plan:plan?plan.toISOString():null,leave:null,back:null});save();$('posArrive').value='';$('posPlan').value='';$('posDepart').value=nowLocalInput();toast('Виїзд збережено')});
+function showDepSummary(d){const cmp=planDiffText(d);openModal('Виїзд завершено',`<div class="recommendation">Загальний час на позиції: <strong>${duration(posMs(d)/60000)}</strong></div><div class="recommendation">Дорога туди: ${duration(minsBetween(d.depart,d.arrive))} • назад: ${duration(minsBetween(d.leave,d.back))}</div>${d.plan?`<div class="recommendation">Планувалося: ${duration(minsBetween(d.arrive,d.plan))}. ${esc(cmp)}</div>`:''}`,[{label:'Закрити',primary:true,action:closeModal}])}
+$('posCloseForm').addEventListener('submit',e=>{e.preventDefault();const o=openDep();if(!o)return;const lv=dtLocal($('posLeave').value),bk=dtLocal($('posBack').value);if(!lv||!bk){toast('Вкажи час виїзду з позиції та приїзду на відпочинок.');return}if(+lv<tm(o.arrive)){toast('Виїзд з позиції не може бути раніше приїзду на позицію.');return}if(+bk<+lv){toast('Приїзд на відпочинок не може бути раніше виїзду з позиції.');return}o.leave=lv.toISOString();o.back=bk.toISOString();save();$('posLeave').value='';$('posBack').value='';showDepSummary(o)});
+$('posPlanSave').addEventListener('click',()=>{const o=openDep();if(!o)return;const v=$('posPlanEdit').value,p=dtLocal(v);if(v&&(!p||+p<=tm(o.arrive))){toast('Планове повернення має бути після приїзду на позицію.');return}o.plan=p?p.toISOString():null;save();$('posPlanEdit').value='';toast(p?'План оновлено':'План прибрано')});
+$('posCancel').addEventListener('click',()=>{const o=openDep();if(!o||!confirm('Видалити поточний виїзд?'))return;data.deployments=data.deployments.filter(d=>d.id!==o.id);save();toast('Виїзд видалено')});
+$('posList').addEventListener('click',e=>{const b=e.target.closest('[data-delete-dep]');if(b&&confirm('Видалити цей виїзд?')){data.deployments=data.deployments.filter(d=>d.id!==+b.dataset.deleteDep);save();toast('Виїзд видалено')}});
+function renderAll(){renderHome();renderPulse();renderShifts();renderFlights();renderDeployments();renderFinance();renderSecurity()}
 const PIN_ITER=150000;
 const hasCrypto=()=>!!(window.crypto&&crypto.subtle);
 async function hashPin(pin,salt,iter){const key=await crypto.subtle.importKey('raw',new TextEncoder().encode(pin),'PBKDF2',false,['deriveBits']);const bits=await crypto.subtle.deriveBits({name:'PBKDF2',salt:b64u.dec(salt),iterations:iter,hash:'SHA-256'},key,256);return b64u.enc(bits)}
@@ -205,19 +297,19 @@ $('autoLock').addEventListener('change',()=>{data.security.autoLock=Number($('au
 $('bioEnable').addEventListener('click',async()=>{if(!data.security.pin){toast('Спершу встанови PIN.');return}try{const r=await bioRegister();data.security.bio={...r,added:new Date().toISOString()};save();toast('Вхід за відбитком увімкнено')}catch(e){toast(e&&e.name==='NotAllowedError'?'Скасовано або відбиток не підтверджено.':'Не вдалося увімкнути відбиток: '+(e&&e.message?e.message:'помилка'))}});
 $('bioDisable').addEventListener('click',()=>{data.security.bio=null;save();toast('Вхід за відбитком вимкнено')});
 $('bioTest').addEventListener('click',async()=>{try{toast(await bioAuth()?'Відбиток підтверджено ✓':'Відбиток не підтверджено')}catch(e){toast('Перевірку скасовано або вона недоступна.')}});
-function lock(){if(!data.security.pin||locked)return;locked=true;document.documentElement.classList.add('prelock');$('lockscreen').classList.remove('hidden');$('unlockPin').value='';$('unlockError').textContent='';const bio=!!data.security.bio;$('bioUnlock').classList.toggle('hidden',!bio);$('lockHint').textContent=bio?'Підтверди відбитком або введи PIN':'Введи PIN для продовження';if(bio&&document.visibilityState==='visible')setTimeout(()=>tryBio(true),250);else setTimeout(()=>$('unlockPin').focus(),50)}
+function lock(){if(!data.security.pin||locked)return;locked=true;hideTariff();document.documentElement.classList.add('prelock');$('lockscreen').classList.remove('hidden');$('unlockPin').value='';$('unlockError').textContent='';const bio=!!data.security.bio;$('bioUnlock').classList.toggle('hidden',!bio);$('lockHint').textContent=bio?'Підтверди відбитком або введи PIN':'Введи PIN для продовження';if(bio&&document.visibilityState==='visible')setTimeout(()=>tryBio(true),250);else setTimeout(()=>$('unlockPin').focus(),50)}
 function unlock(){locked=false;failCount=0;document.documentElement.classList.remove('prelock');$('lockscreen').classList.add('hidden');$('unlockPin').value='';$('unlockError').textContent='';lastActivity=Date.now()}
 async function tryBio(silent){if(bioBusy||!locked||!data.security.bio)return;bioBusy=true;try{if(await bioAuth())unlock();else $('unlockError').textContent='Відбиток не підтверджено. Введи PIN.'}catch(e){const cancelled=e&&e.name==='NotAllowedError';if(!silent||!cancelled)$('unlockError').textContent=cancelled?'Скасовано. Спробуй ще раз або введи PIN.':'Відбиток недоступний. Введи PIN.'}finally{bioBusy=false}}
 $('bioUnlock').addEventListener('click',()=>tryBio(false));
 $('unlockForm').addEventListener('submit',async e=>{e.preventDefault();const wait=blockedUntil-Date.now();if(wait>0){$('unlockError').textContent='Забагато спроб. Зачекай '+Math.ceil(wait/1000)+' с.';return}let ok=false;try{ok=await verifyPin($('unlockPin').value)}catch(err){$('unlockError').textContent='Не вдалося перевірити PIN у цьому браузері.';return}if(ok){unlock();return}failCount++;$('unlockPin').value='';if(failCount>=5){const sec=Math.min(failCount-4,10)*30;blockedUntil=Date.now()+sec*1000;$('unlockError').textContent='Забагато спроб. Зачекай '+sec+' с.'}else $('unlockError').textContent='PIN неправильний. Спроб до паузи: '+(5-failCount)+'.'});
 ['click','keydown','touchstart','scroll'].forEach(ev=>document.addEventListener(ev,()=>{lastActivity=Date.now()},{passive:true}));
-setInterval(()=>{const al=Number(data.security.autoLock);if(data.security.pin&&al>0&&!locked&&Date.now()-lastActivity>=al*60000)lock();renderShifts()},15000);
-document.addEventListener('visibilitychange',()=>{const al=Number(data.security.autoLock);if(document.visibilityState==='hidden'){hiddenAt=Date.now();if(data.security.pin&&al===-1)lock()}else{if(data.security.pin&&al>0&&hiddenAt&&Date.now()-hiddenAt>=al*60000)lock();if(locked&&data.security.bio)tryBio(true);renderShifts();syncFinance(false)}});
+setInterval(()=>{const al=Number(data.security.autoLock);if(data.security.pin&&al>0&&!locked&&Date.now()-lastActivity>=al*60000)lock();renderShifts();renderDeployments()},15000);
+document.addEventListener('visibilitychange',()=>{const al=Number(data.security.autoLock);if(document.visibilityState==='hidden'){hiddenAt=Date.now();hideTariff();if(data.security.pin&&al===-1)lock()}else{if(data.security.pin&&al>0&&hiddenAt&&Date.now()-hiddenAt>=al*60000)lock();if(locked&&data.security.bio)tryBio(true);renderShifts();renderDeployments();syncFinance(false)}});
 function download(name,content,type='application/json'){const blob=new Blob([content],{type}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000)}
 $('exportData').addEventListener('click',()=>{const {security,...rest}=data;download('life-pulse-pro-backup-'+isoDay(new Date())+'.json',JSON.stringify({...rest,exportedAt:new Date().toISOString(),app:'LIFE PULSE PRO'},null,2))});
 $('importFile').addEventListener('change',async e=>{const f=e.target.files[0];if(!f)return;try{const j=JSON.parse(await f.text());if(!j||!Array.isArray(j.pulses)||!Array.isArray(j.shifts)||!Array.isArray(j.flights))throw Error('format');if(confirm('Відновити резервну копію? Поточні локальні дані буде замінено. PIN і відбиток залишаться без змін.')){data={...sanitize(j),security:data.security};save();toast('Резервну копію відновлено')}}catch(err){toast('Файл не схожий на резервну копію LIFE PULSE PRO.')}e.target.value=''});
 $('resetData').addEventListener('click',()=>{if(!confirm('Точно стерти всі записи та фінансові показники з цього пристрою? PIN і відбиток залишаться. Спершу зроби резервну копію, якщо вона потрібна.'))return;data={...clone(defaults),security:data.security};save();toast('Локальні дані скинуто')});
-$('versionBtn').addEventListener('click',()=>openModal('Історія версій',`<div class="item"><div class="itemhead"><strong>v1.2.0 — Автосинхронізація фінансів</strong><span class="pill ok">17.10.2026</span></div><p>Баланс і «Можна витратити сьогодні» тепер підтягуються автоматично з Financial Strategy 2026 PRO (потрібна версія 2.8+). Показується дата оновлення та попередження, якщо дані застаріли.</p></div><div class="item"><div class="itemhead"><strong>v1.1.0 — Відбиток і встановлення</strong><span class="pill ok">17.10.2026</span></div><p>Вхід за відбитком пальця (з PIN як запасним), PIN тепер зберігається захешованим і не потрапляє в резервну копію, блокування при кожному запуску, встановлення на телефон (іконки, офлайн), виправлено підрахунок балів ПУЛЬС-СКАН.</p></div><div class="item"><div class="itemhead"><strong>v1.0.0 — Перший випуск</strong><span class="pill ok">16.10.2026</span></div><p>Базові модулі: ПУЛЬС-СКАН, графік і відлік, облік часу, обмежена фінансова інтеграція, PIN-блокування, резервна копія та офлайн-кеш.</p></div><p class="tiny">Дати — це записи історії версій у програмі, а не автоматично перевірені дати публікації на сайті.</p>`,[{label:'Закрити',primary:true,action:closeModal}]));
+$('versionBtn').addEventListener('click',()=>openModal('Історія версій',`<div class="item"><div class="itemhead"><strong>v1.3.0 — Виїзд на позицію</strong><span class="pill ok">17.10.2026</span></div><p>Новий розділ «Позиція»: час виїзду, приїзду на позицію, повернення з позиції та на відпочинок, загальний час на позиції та порівняння з плановим поверненням. Прихована тарифікація: суми показуються після підтвердження відбитком або PIN.</p></div><div class="item"><div class="itemhead"><strong>v1.2.0 — Автосинхронізація фінансів</strong><span class="pill ok">17.10.2026</span></div><p>Баланс і «Можна витратити сьогодні» тепер підтягуються автоматично з Financial Strategy 2026 PRO (потрібна версія 2.8+). Показується дата оновлення та попередження, якщо дані застаріли.</p></div><div class="item"><div class="itemhead"><strong>v1.1.0 — Відбиток і встановлення</strong><span class="pill ok">17.10.2026</span></div><p>Вхід за відбитком пальця (з PIN як запасним), PIN тепер зберігається захешованим і не потрапляє в резервну копію, блокування при кожному запуску, встановлення на телефон (іконки, офлайн), виправлено підрахунок балів ПУЛЬС-СКАН.</p></div><div class="item"><div class="itemhead"><strong>v1.0.0 — Перший випуск</strong><span class="pill ok">16.10.2026</span></div><p>Базові модулі: ПУЛЬС-СКАН, графік і відлік, облік часу, обмежена фінансова інтеграція, PIN-блокування, резервна копія та офлайн-кеш.</p></div><p class="tiny">Дати — це записи історії версій у програмі, а не автоматично перевірені дати публікації на сайті.</p>`,[{label:'Закрити',primary:true,action:closeModal}]));
 function openModal(title,body,buttons=[]){$('modalRoot').innerHTML=`<div class="modalback" id="modalback"><div class="modal"><h2>${esc(title)}</h2><div>${body}</div><div class="modalfoot" id="modalBtns"></div></div></div>`;buttons.forEach(b=>{const x=document.createElement('button');x.textContent=b.label;if(b.primary)x.className='primary';x.onclick=b.action;$('modalBtns').appendChild(x)});$('modalback').addEventListener('click',e=>{if(e.target.id==='modalback')closeModal()})}
 function closeModal(){$('modalRoot').innerHTML=''}
 $('checkUpdates').addEventListener('click',async()=>{try{if(!('serviceWorker'in navigator)){toast('Цей браузер не підтримує service worker.');return}const reg=await navigator.serviceWorker.getRegistration();if(!reg){toast('Офлайн-кеш ще не зареєстровано. Відкрий програму через HTTPS.');return}await reg.update();toast('Перевірено. Якщо є нова версія — перезавантаж програму.')}catch(e){toast('Не вдалося перевірити оновлення.')}});
@@ -230,7 +322,7 @@ window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPro
 window.addEventListener('appinstalled',()=>{deferredPrompt=null;renderInstall();toast('Програму встановлено')});
 async function initOffline(){if(!('serviceWorker'in navigator)){$('offlineStatus').textContent='Цей браузер не підтримує service worker — офлайн-режим недоступний.';return}if(location.protocol==='file:'){$('offlineStatus').textContent='Файл відкрито напряму. Для встановлення та офлайн-кешу розмісти файли на HTTPS, наприклад GitHub Pages.';return}try{const reg=await navigator.serviceWorker.register('./sw.js',{scope:'./'});await navigator.serviceWorker.ready;$('offlineStatus').textContent='Офлайн-кеш активний: програма відкриється й без мережі.';reg.addEventListener('updatefound',()=>{const w=reg.installing;if(w)w.addEventListener('statechange',()=>{if(w.state==='installed'&&navigator.serviceWorker.controller)toast('Доступна нова версія. Перезавантаж програму.')})})}catch(e){$('offlineStatus').textContent='Не вдалося зареєструвати офлайн-кеш. Перевір, що index.html, sw.js, manifest.json та іконки лежать в одній папці на HTTPS.'}}
 if(data.security.pin)lock();
-$('shiftStart').value=nowLocalInput();$('flightDate').value=nowLocalInput();renderQuiz();syncFinance(false);renderAll();renderInstall();checkBio();initOffline();
+$('shiftStart').value=nowLocalInput();$('flightDate').value=nowLocalInput();$('posDepart').value=nowLocalInput();renderQuiz();syncFinance(false);renderAll();renderInstall();checkBio();initOffline();
 {const sp=new URLSearchParams(location.search).get('screen');if(sp&&$('screen-'+sp))showScreen(sp)}
 })();
 </script>
