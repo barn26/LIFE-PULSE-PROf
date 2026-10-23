@@ -8,28 +8,74 @@
   "start_url": "./index.html?source=pwa",
   "scope": "./",
   "display": "standalone",
-  "display_override": ["standalone", "minimal-ui"],
+  "display_override": [
+    "standalone",
+    "minimal-ui"
+  ],
   "orientation": "portrait",
   "background_color": "#06101c",
   "theme_color": "#07111f",
-  "categories": ["health", "lifestyle", "productivity"],
+  "categories": [
+    "health",
+    "lifestyle",
+    "productivity"
+  ],
   "icons": [
-    { "src": "./lp-icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "./lp-icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "./lp-icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    {
+      "src": "./lp-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./lp-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./lp-icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
   ],
   "shortcuts": [
+    {
+      "name": "Швидкий журнал",
+      "short_name": "Журнал",
+      "url": "./index.html?screen=log&source=shortcut",
+      "icons": [
+        {
+          "src": "./lp-icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
     {
       "name": "ПУЛЬС-СКАН",
       "short_name": "Пульс",
       "url": "./index.html?screen=pulse&source=shortcut",
-      "icons": [{ "src": "./lp-icon-192.png", "sizes": "192x192", "type": "image/png" }]
+      "icons": [
+        {
+          "src": "./lp-icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
     },
     {
       "name": "Графік і таймер",
       "short_name": "Графік",
       "url": "./index.html?screen=schedule&source=shortcut",
-      "icons": [{ "src": "./lp-icon-192.png", "sizes": "192x192", "type": "image/png" }]
+      "icons": [
+        {
+          "src": "./lp-icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
     }
   ]
 }
