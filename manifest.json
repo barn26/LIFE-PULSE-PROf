@@ -1,8 +1,8 @@
 {
   "id": "/life-pulse-pro",
-  "name": "LIFE PULSE PRO",
-  "short_name": "LIFE PULSE",
-  "description": "Офлайн-помічник для самопочуття, відновлення, графіка та особистого контролю.",
+  "name": "AEROROZVIDKA PRO",
+  "short_name": "AEROROZVIDKA",
+  "description": "Офлайн-помічник аеророзвідки: польоти, чергування, виїзди, самопочуття та особистий контроль.",
   "lang": "uk",
   "dir": "ltr",
   "start_url": "./index.html?source=pwa",

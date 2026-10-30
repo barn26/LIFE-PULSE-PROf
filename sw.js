@@ -1,8 +1,8 @@
-/* LIFE PULSE PRO — service worker.
+/* AEROROZVIDKA PRO — service worker.
    Кеш має власний префікс "lifepulse-", щоб не зачіпати кеші інших програм
    на тому самому домені (наприклад, фінансової програми на github.io). */
 const PREFIX = "lifepulse-";
-const CACHE_NAME = PREFIX + "v1.13.0";
+const CACHE_NAME = PREFIX + "v1.14.0";
 const APP_SHELL = [
   "./",
   "./index.html",
